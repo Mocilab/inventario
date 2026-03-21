@@ -18,7 +18,7 @@
   .header-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; min-height: 38px; }
   .header-btn:hover { background: rgba(255,255,255,0.25); }
   .header-btn.active { background: rgba(255,255,255,0.3); border-color: white; }
-  .update-time { font-size: 11px; opacity: 0.7; display: none; }
+  .update-time { font-size: 11px; opacity: 0.7; display: inline; }
 
   /* MAIN */
   .main { max-width: 1400px; margin: 0 auto; padding: 12px; }
@@ -132,7 +132,7 @@
   .note-cell input:hover { border-color: #e0e0e0; }
   .note-cell input:focus { border-color: #0d9488; outline: none; background: white; }
 
-  /* RESPONSIVE — mobile-first con min-width */
+  /* RESPONSIVE â mobile-first con min-width */
   @media (min-width: 480px) {
     .kpi-row { gap: 12px; }
     .season-grid { grid-template-columns: repeat(6, 1fr); }
@@ -193,7 +193,7 @@
     </div>
   </div>
   <div class="header-right">
-    <span class="update-time">Actualizado: 19 Mar 2026</span>
+    <span class="update-time" id="updateTime">Cargando datos...</span>
     <button class="header-btn" onclick="togglePanel('config')">&#9881; Configuraci&oacute;n</button>
     <button class="header-btn" onclick="togglePanel('season')">&#128197; Estacionalidad</button>
     <div class="export-menu">
@@ -306,51 +306,70 @@
 
 <script>
 // ============================================================
-// DATA: 41 products with Sellerboard March sales (Mar 1-19)
+// DATA: loaded dynamically from Google Sheets
 // ============================================================
-var PRODUCTS = [
-  {sku:"MRMA14OR02CC",asin:"B0G2HL9XXB",name:"Real Madrid - Moneda ed. Especial con Escudo e inscripcion",club:"Real Madrid",cat:"Moneda",stock:196,total:203,inbound:0,jan:32,feb:71,mar:46,u30:69,price:9.95,alert:"",daysFBA:"100",notes:"",sbMar:82},
-  {sku:"MFCB14OR02CC",asin:"B0G3YQS98P",name:"FC Barcelona - Moneda ed. Especial con Escudo e inscripcion",club:"FC Barcelona",cat:"Moneda",stock:259,total:263,inbound:0,jan:12,feb:50,mar:43,u30:68,price:9.95,alert:"",daysFBA:"132",notes:"",sbMar:57},
-  {sku:"MFCB14OR03CC",asin:"B0G3YV9KY4",name:"FC Barcelona - Moneda ed. Especial con Escudo y Retrato",club:"FC Barcelona",cat:"Moneda",stock:300,total:300,inbound:0,jan:19,feb:17,mar:29,u30:37,price:9.95,alert:"",daysFBA:"211",notes:"",sbMar:34},
-  {sku:"MFCB14OR01CC",asin:"B0G3YVK5WN",name:"FC Barcelona - Moneda ed. Especial con Escudo y Grabado",club:"FC Barcelona",cat:"Moneda",stock:264,total:264,inbound:0,jan:17,feb:26,mar:30,u30:36,price:9.95,alert:"",daysFBA:"221",notes:"",sbMar:36},
-  {sku:"MRMA14OR03CC",asin:"B0G2HQ7DYL",name:"Real Madrid - Moneda ed. Especial con Escudo e inscripcion OR03",club:"Real Madrid",cat:"Moneda",stock:318,total:325,inbound:0,jan:5,feb:26,mar:27,u30:33,price:9.95,alert:"",daysFBA:"215",notes:"",sbMar:49},
-  {sku:"CPRI02A5A01CC",asin:"B0GKBBQ7JB",name:"Cuaderno El Principito con portada 3D - Encuadernacion cosida",club:"Principito",cat:"Cuaderno",stock:18,total:19,inbound:0,jan:0,feb:32,mar:0,u30:30,price:22.95,alert:"",daysFBA:"51",notes:"",sbMar:2},
-  {sku:"MRMA14OR01CC",asin:"B0G2HJNGDY",name:"Real Madrid - Moneda ed. Especial Escudo y Estadio Santiago Bernabeu",club:"Real Madrid",cat:"Moneda",stock:245,total:252,inbound:0,jan:12,feb:20,mar:21,u30:29,price:9.95,alert:"",daysFBA:"200",notes:"",sbMar:54},
-  {sku:"MRMA54AL01CC",asin:"B0G2HMD8LC",name:"Real Madrid - Pack de 5 Monedas ed. Especial - Reyes de Europa",club:"Real Madrid",cat:"Pack",stock:19,total:21,inbound:0,jan:0,feb:3,mar:27,u30:27,price:39.95,alert:"low_stock",daysFBA:"12",notes:"",sbMar:49},
-  {sku:"MFCB14PL01CC",asin:"B0G3YZ6DGK",name:"FC Barcelona - Moneda ed. Especial con Escudo y Grabado plata",club:"FC Barcelona",cat:"Moneda",stock:351,total:352,inbound:0,jan:8,feb:24,mar:9,u30:24,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:12},
-  {sku:"MATM54AL01CC",asin:"B0G2HLWMBC",name:"Atletico de Madrid - Pack de 5 Monedas ed. Especial",club:"Atletico",cat:"Pack",stock:93,total:94,inbound:0,jan:5,feb:12,mar:18,u30:20,price:39.95,alert:"",daysFBA:"162",notes:"",sbMar:23},
-  {sku:"MATM14OR04CC",asin:"B0G21BPT2T",name:"Atletico de Madrid - Moneda ed. Especial con Escudo y Grabado",club:"Atletico",cat:"Moneda",stock:357,total:358,inbound:0,jan:5,feb:9,mar:14,u30:16,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:17},
-  {sku:"MATM14OR02CC",asin:"B0G2HKT2JL",name:"Atletico de Madrid - Moneda ed. Especial Escudo y Estadio",club:"Atletico",cat:"Moneda",stock:335,total:336,inbound:0,jan:1,feb:13,mar:13,u30:16,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:20},
-  {sku:"MRMA14NI06CC",asin:"B0G2HLLMR4",name:"Real Madrid - Moneda ed. Especial con Escudo e inscripcion niquel",club:"Real Madrid",cat:"Moneda",stock:336,total:336,inbound:0,jan:16,feb:11,mar:14,u30:15,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:18},
-  {sku:"MRMA14PL01CC",asin:"B0G2HM9664",name:"Real Madrid - Moneda ed. Especial Escudo y Estadio plata",club:"Real Madrid",cat:"Moneda",stock:302,total:302,inbound:0,jan:9,feb:14,mar:10,u30:11,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:17},
-  {sku:"MRMA14NA05CC",asin:"B0G2HKZ7V9",name:"Real Madrid - Moneda ed. Especial con Escudo e inscripcion naranja",club:"Real Madrid",cat:"Moneda",stock:72,total:74,inbound:0,jan:4,feb:6,mar:10,u30:9,price:9.95,alert:"",daysFBA:"274",notes:"",sbMar:13},
-  {sku:"MRMA14CO04CC",asin:"B0G2HLYX91",name:"Real Madrid - Moneda ed. Especial con Escudo y anio de fundacion",club:"Real Madrid",cat:"Moneda",stock:183,total:185,inbound:0,jan:0,feb:2,mar:8,u30:8,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:15},
-  {sku:"MFCB14PL06CC",asin:"B0G3YWDJGF",name:"FC Barcelona - Moneda ed. Especial con Escudo y inscripcion plata",club:"FC Barcelona",cat:"Moneda",stock:376,total:376,inbound:0,jan:5,feb:3,mar:6,u30:7,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:7},
-  {sku:"MATM14NI05CC",asin:"B0G2HHMRJY",name:"Atletico de Madrid - Moneda ed. Especial con Escudo e inscripcion",club:"Atletico",cat:"Moneda",stock:379,total:380,inbound:0,jan:4,feb:7,mar:7,u30:7,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:8},
-  {sku:"MATM14OR07CC",asin:"B0G2HK41ZH",name:"Atletico de Madrid - Moneda ed. Especial Indy y Escudo",club:"Atletico",cat:"Moneda",stock:191,total:191,inbound:0,jan:0,feb:2,mar:6,u30:7,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:7},
-  {sku:"MFCB14BR04CC",asin:"B0G3YVFS1F",name:"FC Barcelona - Moneda ed. Especial con Escudo y Grabado bronce",club:"FC Barcelona",cat:"Moneda",stock:382,total:382,inbound:0,jan:2,feb:3,mar:7,u30:6,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:8},
-  {sku:"MATM14PL01CC",asin:"B0G2HMB3LZ",name:"Atletico de Madrid - Moneda ed. Especial con Escudo plata",club:"Atletico",cat:"Moneda",stock:352,total:352,inbound:0,jan:4,feb:7,mar:4,u30:4,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:6},
-  {sku:"CFCB04A6B01CC",asin:"B0G4FHY5FX",name:"Cuaderno FC Barcelona BARCA en 3D - encuadernacion lomo",club:"FC Barcelona",cat:"Cuaderno",stock:35,total:37,inbound:0,jan:2,feb:2,mar:2,u30:3,price:18.95,alert:"",daysFBA:"317",notes:"",sbMar:4},
-  {sku:"CFCB02A6A01CC",asin:"B0G4FHD2YJ",name:"Cuaderno FC Barcelona con escudo en 3D - encuadernacion cosida",club:"FC Barcelona",cat:"Cuaderno",stock:38,total:38,inbound:0,jan:0,feb:5,mar:2,u30:3,price:18.95,alert:"",daysFBA:"274",notes:"",sbMar:2},
-  {sku:"CATM01A6R01CC",asin:"B0G3WR6NCD",name:"Cuaderno Atletico de Madrid con escudo en 3D - rojo",club:"Atletico",cat:"Cuaderno",stock:29,total:29,inbound:0,jan:5,feb:3,mar:1,u30:2,price:18.95,alert:"",daysFBA:"232",notes:"",sbMar:1},
-  {sku:"BFCB01M001CA",asin:"B0GGS97182",name:"FC Barcelona Bloc de notas + Escultura en 3D del Estadio",club:"FC Barcelona",cat:"Bloc 3D",stock:34,total:34,inbound:0,jan:0,feb:1,mar:1,u30:2,price:34.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"CFCB03A5B01CC",asin:"B0G4FHBS5H",name:"Cuaderno FC Barcelona BARCA en 3D - encuadernacion cosida A5",club:"FC Barcelona",cat:"Cuaderno",stock:41,total:41,inbound:0,jan:3,feb:1,mar:1,u30:2,price:22.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"CATM01A5A01CC",asin:"B0G3WRNL58",name:"Cuaderno Atletico de Madrid con escudo en 3D - A5",club:"Atletico",cat:"Cuaderno",stock:47,total:47,inbound:0,jan:0,feb:0,mar:1,u30:1,price:22.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"BATM01M001CA",asin:"B0GGRZ9MHV",name:"Atletico de Madrid Bloc de notas + Escultura en 3D del Estadio",club:"Atletico",cat:"Bloc 3D",stock:34,total:34,inbound:0,jan:0,feb:2,mar:0,u30:1,price:34.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"MATM14BR06CC",asin:"B0G2HJSNF2",name:"Atletico de Madrid - Moneda ed. Especial con Escudo bronce",club:"Atletico",cat:"Moneda",stock:587,total:587,inbound:0,jan:4,feb:1,mar:1,u30:1,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:3},
-  {sku:"CRMA01A6G01CC",asin:"B0G3WR3P6Y",name:"Cuaderno Real Madrid con escudo en 3D - verde",club:"Real Madrid",cat:"Cuaderno",stock:38,total:38,inbound:0,jan:1,feb:0,mar:1,u30:1,price:20.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"CRMA01A6A01CC",asin:"B0G3WSGTQ5",name:"Cuaderno Real Madrid con escudo en 3D - azul",club:"Real Madrid",cat:"Cuaderno",stock:45,total:45,inbound:0,jan:1,feb:0,mar:1,u30:1,price:20.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"MFCB14BA05CC",asin:"B0G3YWJ89N",name:"FC Barcelona - Moneda ed. Especial con Escudo y Grabado banada",club:"FC Barcelona",cat:"Moneda",stock:390,total:390,inbound:0,jan:4,feb:2,mar:1,u30:1,price:9.95,alert:"",daysFBA:"365+",notes:"",sbMar:1},
-  {sku:"MFCB34AL02CC",asin:"B0G3YW3Q8Q",name:"FC Barcelona - Pack x 3 Monedas ed. Especial - Spotify Camp Nou",club:"FC Barcelona",cat:"Pack",stock:0,total:0,inbound:0,jan:0,feb:0,mar:0,u30:0,price:24.95,alert:"out_of_stock",daysFBA:"",notes:"Mandar unidades",sbMar:0},
-  {sku:"CRMA01A5G01CC",asin:"B0G3WP8PW3",name:"Cuaderno Real Madrid con escudo en 3D - verde A5",club:"Real Madrid",cat:"Cuaderno",stock:48,total:48,inbound:0,jan:2,feb:0,mar:0,u30:0,price:24.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"CATM01A5R01CC",asin:"B0G3WPC93P",name:"Cuaderno Atletico de Madrid con escudo en 3D - rojo A5",club:"Atletico",cat:"Cuaderno",stock:45,total:45,inbound:0,jan:2,feb:2,mar:0,u30:0,price:22.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"CPRI01A5B01CC",asin:"B0GKB8PYWP",name:"Cuaderno El Principito con portada 3D - A5",club:"Principito",cat:"Cuaderno",stock:50,total:50,inbound:0,jan:0,feb:0,mar:0,u30:0,price:22.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"CFCB01A5A01CC",asin:"B0G4FHV988",name:"Cuaderno FC Barcelona con escudo en 3D - A5",club:"FC Barcelona",cat:"Cuaderno",stock:46,total:46,inbound:0,jan:1,feb:1,mar:0,u30:0,price:22.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"MFCB54AL01CC",asin:"B0GP7JC8WQ",name:"FC Barcelona - Pack x 5 Monedas Ed. Especial - Mes Que Un Club",club:"FC Barcelona",cat:"Pack",stock:66,total:70,inbound:0,jan:0,feb:0,mar:0,u30:0,price:39.95,alert:"",daysFBA:"",notes:"",sbMar:1},
-  {sku:"CRMA01A5A01CC",asin:"B0G3WR5L2D",name:"Cuaderno Real Madrid con escudo en 3D - azul A5",club:"Real Madrid",cat:"Cuaderno",stock:47,total:47,inbound:0,jan:2,feb:0,mar:0,u30:0,price:24.95,alert:"",daysFBA:"365+",notes:"",sbMar:0},
-  {sku:"MATM14OR01CC",asin:"B0G2HLSCWQ",name:"Atletico de Madrid - Moneda ed. Especial con Escudo y Grabado oro",club:"Atletico",cat:"Moneda",stock:159,total:200,inbound:0,jan:0,feb:0,mar:0,u30:0,price:9.95,alert:"",daysFBA:"",notes:"",sbMar:0},
-  {sku:"CATM01A6A01CC",asin:"B0G3WRC4QD",name:"Cuaderno Atletico de Madrid con escudo en 3D - azul",club:"Atletico",cat:"Cuaderno",stock:41,total:41,inbound:0,jan:1,feb:2,mar:0,u30:0,price:18.95,alert:"",daysFBA:"365+",notes:"",sbMar:0}
+var PRODUCTS = [];
+var SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1_bX99F6UkbBsmP7Jo56YCpz1ZhgsgGL_NYbeWnRu_5o/export?format=csv&gid=0';
+
+// Fallback hardcoded data (last known good state - 19 Mar 2026)
+var FALLBACK_PRODUCTS = [
+  {sku:"MFCB14PL01CC",asin:"B0G3YWK1QF",name:"FC Barcelona - Moneda ed. Especial con Escudo plata",club:"FC Barcelona",cat:"Moneda",stock:271,total:271,inbound:0,jan:15,feb:17,mar:19,u30:25,price:9.95,daysFBA:"221",notes:"",sbMar:19},
+  {sku:"MRMA14PL01CC",asin:"B0G3YRGZNX",name:"Real Madrid - Moneda ed. Especial con Escudo plata",club:"Real Madrid",cat:"Moneda",stock:186,total:186,inbound:0,jan:12,feb:14,mar:17,u30:20,price:9.95,daysFBA:"190",notes:"",sbMar:17}
 ];
+
+function parseCSV(text) {
+  var lines = text.split('\n');
+  if (lines.length < 2) return [];
+  // Parse header
+  var headers = lines[0].split(',').map(function(h) { return h.trim().replace(/^"|"$/g, ''); });
+  var products = [];
+  for (var i = 1; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    // Parse CSV line handling quoted fields with commas
+    var values = [];
+    var current = '';
+    var inQuotes = false;
+    for (var c = 0; c < line.length; c++) {
+      var ch = line[c];
+      if (ch === '"') {
+        if (inQuotes && c + 1 < line.length && line[c + 1] === '"') {
+          current += '"';
+          c++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    values.push(current.trim());
+    // Map to product object
+    var p = {};
+    for (var j = 0; j < headers.length; j++) {
+      var key = headers[j];
+      var val = (j < values.length) ? values[j].replace(/^"|"$/g, '') : '';
+      // Numeric fields
+      if (['stock','total','inbound','jan','feb','mar','u30','sbMar'].indexOf(key) !== -1) {
+        p[key] = parseInt(val) || 0;
+      } else if (key === 'price') {
+        p[key] = parseFloat(val) || 0;
+      } else {
+        p[key] = val;
+      }
+    }
+    // Ensure required fields exist
+    if (p.sku) {
+      if (!p.alert) p.alert = '';
+      if (p.stock === 0 && p.inbound === 0 && p.total === 0) p.alert = 'out_of_stock';
+      products.push(p);
+    }
+  }
+  return products;
+}
 
 // Seasonality multipliers
 var MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -366,8 +385,38 @@ var computed = [];
 // INIT
 // ============================================================
 function init() {
-  buildSeasonality();
-  recalculate();
+  var timeEl = document.getElementById('updateTime');
+  if (timeEl) { timeEl.textContent = 'Cargando datos...'; timeEl.style.display = 'inline'; }
+  fetch(SHEETS_CSV_URL + '&t=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('No se pudo cargar Google Sheets');
+      return r.text();
+    })
+    .then(function(csv) {
+      var parsed = parseCSV(csv);
+      if (parsed.length > 0) {
+        PRODUCTS = parsed;
+        if (timeEl) {
+          var now = new Date();
+          var dd = now.getDate();
+          var mmNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+          timeEl.textContent = 'Datos: Google Sheets - ' + dd + ' ' + mmNames[now.getMonth()] + ' ' + now.getFullYear();
+        }
+      } else {
+        throw new Error('CSV vacio');
+      }
+      buildSeasonality();
+      recalculate();
+    })
+    .catch(function(err) {
+      console.warn('Error cargando Google Sheets:', err.message);
+      if (FALLBACK_PRODUCTS.length > 0 && PRODUCTS.length === 0) {
+        PRODUCTS = FALLBACK_PRODUCTS;
+      }
+      if (timeEl) { timeEl.textContent = 'Datos locales (sin conexion a Sheets)'; }
+      buildSeasonality();
+      recalculate();
+    });
 }
 
 // ============================================================
@@ -567,7 +616,7 @@ var COLUMNS = [
   {key:'reorderPoint', label:'Pto. Reorden', w:'100px', num:true},
   {key:'unitsNeeded', label:'Uds. Pedir', w:'110px', num:true},
   {key:'revenueMTD', label:'Rev. MTD', w:'100px', num:true},
-  {key:'monthlyRevenue', label:'Prev. 30 días', w:'105px', num:true},
+  {key:'monthlyRevenue', label:'Prev. 30 dÃ­as', w:'105px', num:true},
   {key:'notes', label:'Notas', w:'120px'}
 ];
 
